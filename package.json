@@ -1,0 +1,16 @@
+{
+  "name": "ts-promises",
+  "version": "0.1.0",
+  "description": "TypeScript wrappers for strongly typed promises/deferred objects, extends the promise/A+ spec (currently uses Q.js).",
+  "dependencies": {
+    "q": "^1.1.2"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "~2.5.0",
+    "typescript": "~1.8.9"
+  },
+  "scripts": {
+    "test": "mocha -u tdd"
+  }
+}
