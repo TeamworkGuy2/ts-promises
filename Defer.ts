@@ -1,4 +1,4 @@
-﻿/// <reference path="../definitions/lib/Q.d.ts" />
+﻿/// <reference path="../definitions/q/Q.d.ts" />
 import Q = require("q");
 
 /** Defer - functions for strongly typed promise/deferred handling
@@ -51,7 +51,7 @@ class Defer {
 
 
     /** Takes an argument and throws it, useful for inferring the type of TypeScript promises without having to explicitly give the type */
-    static throwBack<F>(error: F): F {
+    static throwBack<F>(error: F): Throws<F> {
         throw error;
     }
 
