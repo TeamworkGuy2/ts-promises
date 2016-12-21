@@ -4,10 +4,16 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.2.0](N/A) - 2016-10-18
+### [0.2.1](N/A) - 2016-12-21
+#### Changed
+Minor tweaks for TypeScript 2.0 compatibility
+
+
+--------
+### [0.2.0](https://github.com/TeamworkGuy2/ts-promises/commit/ec171a66bc9031732a36f6c7a0e833416afe5cc9) - 2016-10-18
 #### Changed
 * Defer.throwBack now returns Throws<T>, which is captured by PsPromise (see next line)
-* Augmented PsPromise with better error type tracking (via Throws<T>) separate from error handler return type (which I previously did not understand was transformed to a success value in chained promises)
+* Augmented PsPromise then() and done() with better error type tracking (via Throws<T>) separate from error handler return type (which I previously did not understand was transformed to a success value in chained promises)
 * Removed PsDeferredVoid, PsDeferredError<F>, PsDeferredErrorString in favor of just using parameterized PsDeferred and PsPromise types
 * Updated mocha test dependency
 

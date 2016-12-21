@@ -199,7 +199,7 @@ class Defer {
             var error = null;
             var cachedData = null;
 
-            if (cacheDone === true) {
+            if (<boolean>cacheDone === true) {
                 if (cacheFailed) {
                     cachedDfd.reject(error);
                 }
