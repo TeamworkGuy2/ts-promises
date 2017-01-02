@@ -12,14 +12,14 @@ suite("Defer", function DeferTest() {
         var a = Defer.newPromiseResolved<string, void>("start");
         var b = Defer.newPromiseResolved<{ s: number }, void>({ s: 22 });
         var c = Defer.newPromiseResolved<number, Error>(10);
-        var ary = [a, a, a];
 
         var dfd = Defer.newDefer<{ res: number }, { errText: string }>();
-        var p1 = dfd.promise.then(() => Defer.newPromiseResolved<{ prop: string }, { errText: string }>(null), () => Defer.newPromiseResolved<{ prop: String }, { errText }>({ prop: new String(23) }));
-        var p2 = p1.then(() => ({ prop: 23 }));
-        var p3 = p2.then<number, { errText: any }, Error, { boom: string }>(() => c, (err) => (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })));
-        var p4 = p3.then((res) => res, (err) => Defer.throwBack(err || c));
+        var p1: PsPromise<{ prop: string | String }, { errText: any }>         = dfd.promise.then(() => Defer.newPromiseResolved<{ prop: string }, { errText: string }>(null), () => Defer.newPromiseResolved<{ prop: String }, { errText }>({ prop: new String(23) }));
+        var p2: PsPromise<{ prop: number }, { errText: any }>                  = p1.then(() => ({ prop: 23 }));
+        var p3: PsPromise<number | { errText: any }, Error | { boom: string }> = p2.then<number, { errText: any }, Error, { boom: string }>(() => c, (err) => (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })));
+        var p4: PsPromise<number | { errText: any }, PsPromise<number, Error>> = p3.then((res) => res, (err) => Defer.throwBack(c));
 
+        var ary = [a, a, a];
         Defer.when(ary).then(function (res) {
             asr.deepEqual(res, ["start", "start", "start"]);
             done();
@@ -39,6 +39,44 @@ suite("Defer", function DeferTest() {
             asr.equal(err, "my-error");
             done();
         }
+    });
+
+
+    test("catch", function catchTest(done) {
+        var b = Defer.newPromiseRejected<{ s: number }, { errText: string }>({ errText: "testing catch" });
+
+        var r1: PsPromise<{ res2: string } | { err2: string }, void> = b.then(function (res) {
+            return { res2: "return result" };
+        }, function (err) {
+            return { err2: "return from error catch" };
+        });
+
+        var r2 = b.then<{ res2: string }, { err2: string }, { errErr: string }, { errErr: string }>(function (res) {
+            return { res2: "return result 2" };
+        }, function (err) {
+            return err ? Defer.throwBack({ errErr: "throw from error catch" }) : { err2: "return from error catch 2" };
+        }).catch(function (err) {
+            return err;
+        });
+
+        var r3: PsPromise<string | { s: number }, string | { errText: string }> = b.catch(function (err) {
+            if (err.errText) {
+                return err.errText;
+            }
+            else {
+                return Defer.throwBack(err.errText);
+            }
+        });
+
+        Defer.when([r1, r2, r3]).then(function ([res1, res2, res3]) {
+            asr.deepEqual(res1, { err2: "return from error catch" });
+            asr.deepEqual(res2, { errErr: "throw from error catch" });
+            asr.equal(res3, "testing catch");
+            done();
+        }, function (err) {
+            asr.isNotOk(err);
+            done();
+        });
     });
 
 

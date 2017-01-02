@@ -9,12 +9,12 @@ suite("Defer", function DeferTest() {
         var a = Defer.newPromiseResolved("start");
         var b = Defer.newPromiseResolved({ s: 22 });
         var c = Defer.newPromiseResolved(10);
-        var ary = [a, a, a];
         var dfd = Defer.newDefer();
         var p1 = dfd.promise.then(function () { return Defer.newPromiseResolved(null); }, function () { return Defer.newPromiseResolved({ prop: new String(23) }); });
         var p2 = p1.then(function () { return ({ prop: 23 }); });
         var p3 = p2.then(function () { return c; }, function (err) { return (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })); });
-        var p4 = p3.then(function (res) { return res; }, function (err) { return Defer.throwBack(err || c); });
+        var p4 = p3.then(function (res) { return res; }, function (err) { return Defer.throwBack(c); });
+        var ary = [a, a, a];
         Defer.when(ary).then(function (res) {
             asr.deepEqual(res, ["start", "start", "start"]);
             done();
@@ -33,6 +33,39 @@ suite("Defer", function DeferTest() {
             asr.equal(err, "my-error");
             done();
         }
+    });
+    test("catch", function catchTest(done) {
+        var b = Defer.newPromiseRejected({ errText: "testing catch" });
+        var r1 = b.then(function (res) {
+            return { res2: "return result" };
+        }, function (err) {
+            return { err2: "return from error catch" };
+        });
+        var r2 = b.then(function (res) {
+            return { res2: "return result 2" };
+        }, function (err) {
+            return err ? Defer.throwBack({ errErr: "throw from error catch" }) : { err2: "return from error catch 2" };
+        }).catch(function (err) {
+            return err;
+        });
+        var r3 = b.catch(function (err) {
+            if (err.errText) {
+                return err.errText;
+            }
+            else {
+                return Defer.throwBack(err.errText);
+            }
+        });
+        Defer.when([r1, r2, r3]).then(function (_a) {
+            var res1 = _a[0], res2 = _a[1], res3 = _a[2];
+            asr.deepEqual(res1, { err2: "return from error catch" });
+            asr.deepEqual(res2, { errErr: "throw from error catch" });
+            asr.equal(res3, "testing catch");
+            done();
+        }, function (err) {
+            asr.isNotOk(err);
+            done();
+        });
     });
     var runInSeriesArgs = [2, 3, 5, 7];
     test("runActionForAllInSeries", function whenTest(done) {

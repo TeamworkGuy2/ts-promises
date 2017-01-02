@@ -4,9 +4,16 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.2.1](N/A) - 2016-12-21
+### [0.2.2](N/A) - 2017-01-02
 #### Changed
-Minor tweaks for TypeScript 2.0 compatibility
+* Improved PsPromise definition, added catch(), fin(), and finally()
+* Added some more unit tests
+
+
+--------
+### [0.2.1](https://github.com/TeamworkGuy2/ts-promises/commit/b4d43ed4917e40df85e022c7ef97b417a39645fd) - 2016-12-21
+#### Changed
+* Minor tweaks for TypeScript 2.0 compatibility
 
 
 --------
