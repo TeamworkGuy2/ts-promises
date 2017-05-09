@@ -4,7 +4,14 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.2.2](N/A) - 2017-01-02
+### [0.2.3](N/A) - 2017-05-09
+#### Changed
+* Updated some documentation to work with Visual Studio
+* Updated to TypeScript 2.3, added tsconfig.json, use @types/ definitions
+
+
+--------
+### [0.2.2](https://github.com/TeamworkGuy2/ts-promises/commit/15ac3ec7e29ab86f8218c14b6dbab6d3dde76ab0) - 2017-01-02
 #### Changed
 * Improved PsPromise definition, added catch(), fin(), and finally()
 * Added some more unit tests

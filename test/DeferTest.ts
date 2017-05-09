@@ -1,5 +1,5 @@
-﻿/// <reference path="../../definitions/chai/chai.d.ts" />
-/// <reference path="../../definitions/mocha/mocha.d.ts" />
+﻿/// <reference types="chai" />
+/// <reference types="mocha" />
 
 import chai = require("chai");
 import Defer = require("../Defer");

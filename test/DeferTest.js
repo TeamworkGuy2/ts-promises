@@ -1,6 +1,7 @@
-/// <reference path="../../definitions/chai/chai.d.ts" />
-/// <reference path="../../definitions/mocha/mocha.d.ts" />
 "use strict";
+/// <reference types="chai" />
+/// <reference types="mocha" />
+Object.defineProperty(exports, "__esModule", { value: true });
 var chai = require("chai");
 var Defer = require("../Defer");
 var asr = chai.assert;
