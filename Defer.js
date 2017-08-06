@@ -39,9 +39,9 @@ var Defer = (function () {
             throw new Error("incorrect arguments (" + args + "," + actionFunc + "), expected (Array, Function)");
         }
         var defs = args.map(function runActionForArg(arg) {
-            var def = Q.defer();
-            actionFunc(def, arg);
-            return def.promise;
+            var dfd = Q.defer();
+            actionFunc(dfd, arg);
+            return dfd.promise;
         });
         return Q.all(defs);
     };

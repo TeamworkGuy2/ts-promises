@@ -4,7 +4,12 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.2.4](N/A) - 2017-08-05
+### [0.2.5](N/A) - 2017-08-06
+* Full/correct TypeScript 2.4 compatibility
+
+
+--------
+### [0.2.4](https://github.com/TeamworkGuy2/ts-promises/commit/82b526e6a66c50b61e205280697f6401b0283c44) - 2017-08-05
 #### Changed
 * Updated to TypeScript 2.4
 

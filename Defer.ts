@@ -15,14 +15,14 @@ class Defer {
     static newPromiseResolved<T, F>(resolveValue: T): PsPromise<T, F> {
         var dfd = Q.defer<any>();
         dfd.resolve(resolveValue);
-        return dfd.promise;
+        return <PsPromise<T, F>>dfd.promise;
     }
 
 
     static newPromiseRejected<T, F>(rejectValue: F): PsPromise<T, F> {
         var dfd = Q.defer<any>();
         dfd.reject(rejectValue);
-        return dfd.promise;
+        return <PsPromise<T, F>>dfd.promise;
     }
 
 
@@ -45,7 +45,7 @@ class Defer {
     /** Wait for an array of promises to resolve and return the result in a strongly typed array */
     static when<T, F>(promises: PsPromise<T, F>[]): PsPromise<T[], F>;
     static when<T, F>(promises: PsPromise<T, F>[]): PsPromise<T[], F> {
-        return Q.all(promises);
+        return <PsPromise<T[], F>>Q.all(promises);
     }
 
 
@@ -66,11 +66,11 @@ class Defer {
             throw new Error("incorrect arguments (" + args + "," + actionFunc + "), expected (Array, Function)");
         }
         var defs = args.map(function runActionForArg(arg) {
-            var def = Q.defer<R>();
-            actionFunc(def, arg);
-            return def.promise;
+            var dfd = <PsDeferred<R, F>>Q.defer<R>();
+            actionFunc(dfd, arg);
+            return dfd.promise;
         });
-        return Q.all(defs);
+        return <PsPromise<R[], F>>Q.all(defs);
     }
 
 
@@ -94,14 +94,14 @@ class Defer {
         var promise = args.reduce(function runActionForArgInSeries(promise, arg) {
             function successCallNextAction(res) {
                 results.push(res);
-                var dfd = Q.defer<R>();
+                var dfd = <PsDeferred<R, F>>Q.defer<R>();
                 actionFunc(dfd, arg);
                 return dfd.promise;
             }
 
             function failureCallNextAction(err) {
                 errors.push(err);
-                var dfd = Q.defer<R>();
+                var dfd = <PsDeferred<R, F>>Q.defer<R>();
                 actionFunc(dfd, arg);
                 return dfd.promise;
             }
@@ -115,7 +115,7 @@ class Defer {
             }
         }, initalDfd.promise);
 
-        return promise.then(function (res) {
+        return <PsPromise<R[], F>>promise.then(function (res) {
             results.push(res);
             // remove the first item since the initial promise in the args.reduce(...) call is a dummy promise to start the chain
             results.shift();
