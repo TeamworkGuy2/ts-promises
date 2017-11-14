@@ -5,45 +5,28 @@ var Q = require("q");
 var Defer = (function () {
     function Defer() {
     }
-    /** Create a deferred object with a 'promise' property
+    /** Create a Q deferred object with a 'promise' property
      * @return a PS deferred object with success and error return values
      */
     Defer.newDefer = function () {
         return Q.defer();
     };
-    Defer.newPromiseResolved = function (resolveValue) {
-        var dfd = Q.defer();
-        dfd.resolve(resolveValue);
-        return dfd.promise;
+    Defer.resolve = function (resolveValue) {
+        return Q.resolve(resolveValue);
     };
-    Defer.newPromiseRejected = function (rejectValue) {
-        var dfd = Q.defer();
-        dfd.reject(rejectValue);
-        return dfd.promise;
+    Defer.reject = function (rejectValue) {
+        return Q.reject(rejectValue);
     };
     Defer.when = function (promises) {
         return Q.all(promises);
     };
     /** Takes an argument and throws it, useful for inferring the type of TypeScript promises without having to explicitly give the type */
-    Defer.throwBack = function (error) {
+    Defer.throw = function (error) {
         throw error;
     };
-    /** Run each object from 'args' through 'actionFunc' and return a deferred promise that completes when all of the actions complete
-     * @param args: an array of objects to pass individually to 'actionFunc'
-     * @param actionFunc: this action is called with a unique deferred promise that must be resolved or rejected
-     * somewhere in the action, and each object from 'args' as a parameter
-     * @return a promise that returns an array of all of the results returned from the calls to 'actionFunc''
-     */
-    Defer.runActionForAll = function (args, actionFunc) {
-        if (typeof actionFunc !== "function") {
-            throw new Error("incorrect arguments (" + args + "," + actionFunc + "), expected (Array, Function)");
-        }
-        var defs = args.map(function runActionForArg(arg) {
-            var dfd = Q.defer();
-            actionFunc(dfd, arg);
-            return dfd.promise;
-        });
-        return Q.all(defs);
+    /** Takes an argument and throws it, useful for inferring the type of TypeScript promises without having to explicitly give the type */
+    Defer.throwBack = function (error) {
+        throw error;
     };
     /** Run each object from 'args' through 'actionFunc' and return a deferred promise that completes when all of the actions complete
      * @param args: an array of objects to pass individually to 'actionFunc''
@@ -154,7 +137,7 @@ var Defer = (function () {
      * @param work: the function that performs the work and returns a deferred
      * @return a function with the same signature as 'work' that the returns a cached deferred
      */
-    Defer.createCachedDeferredTask = function (work) {
+    Defer.cachedDeferredTask = function (work) {
         function cachedDeferResolver() {
             var cachedDfd = Defer.newDefer();
             var cacheDone = false;
@@ -190,7 +173,7 @@ var Defer = (function () {
      * @param work: the function that performs the work and returns a promise
      * @return a function with the same signature as 'work' that the returns a cached promise
      */
-    Defer.createCachedPromiseTask = function (work) {
+    Defer.cachedPromiseTask = function (work) {
         function cachedPromiseResolver() {
             var cachedPromise = undefined;
             if (cachedPromise === undefined) {

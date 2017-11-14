@@ -4,7 +4,28 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.2.5](N/A) - 2017-08-06
+### [0.3.0](N/A) - 2017-11-14
+#### Changed
+* `package.json` added `strictNullChecks` and enabled `noImplicitThis` and fixed code to support these flags
+* Renamed `Defer` methods:
+  * `newPromiseResolved()` -> `resolve()`
+  * `newPromiseRejected()` -> `reject()`
+  * `createCachedDeferredTask()` -> `cachedDeferredTask()`
+  * `createCachedPromiseTask()` -> `cachedPromiseTask()`
+* Improved `PsPromise` method definitions
+* Improved `Throws<T>` norminal interface
+* Added unit test
+
+#### Fixed
+* Fixed `"catch"` unit test error and several code changes to support new `package.json` flags
+
+#### Removed
+* Removed `PsPromise` methods definitions: `fin` and `finally`
+* Removed `Defer.runActionForAll()` method
+
+
+--------
+### [0.2.5](https://github.com/TeamworkGuy2/ts-promises/commit/e025ed876978d80bc99bd714d59f9debd6b1c95e) - 2017-08-06
 * Full/correct TypeScript 2.4 compatibility
 
 
