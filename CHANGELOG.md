@@ -4,7 +4,15 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.3.0](N/A) - 2017-11-14
+### [0.3.1](N/A) - 2018-02-28
+#### Changed
+* Update to TypeScript 2.7
+* Update dependencies: mocha, @types/chai, @types/mocha, @types/node
+* Enable tsconfig.json `noImplicitAny` and fix resulting type errors
+
+
+--------
+### [0.3.0](https://github.com/TeamworkGuy2/ts-promises/commit/91f215c1d56f454f0a308750c2a3de95cf48e005) - 2017-11-14
 #### Changed
 * `package.json` added `strictNullChecks` and enabled `noImplicitThis` and fixed code to support these flags
 * Renamed `Defer` methods:

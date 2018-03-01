@@ -2,7 +2,7 @@
 var Q = require("q");
 /** Defer - functions for strongly typed promise/deferred handling
  */
-var Defer = (function () {
+var Defer = /** @class */ (function () {
     function Defer() {
     }
     /** Create a Q deferred object with a 'promise' property

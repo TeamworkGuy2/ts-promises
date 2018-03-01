@@ -14,7 +14,7 @@ suite("Defer", function DeferTest() {
         var c = Defer.resolve<number, Error>(10);
 
         var dfd = Defer.newDefer<{ res: number }, { errText: string }>();
-        var p1: PsPromise<{ prop: string | String } | null, { errText: any }>  = dfd.promise.then(() => Defer.resolve<{ prop: string } | null, { errText: string }>(null), () => Defer.resolve<{ prop: String }, { errText }>({ prop: new String(23) }));
+        var p1: PsPromise<{ prop: string | String } | null, { errText: any }>  = dfd.promise.then(() => Defer.resolve<{ prop: string } | null, { errText: string }>(null), () => Defer.resolve<{ prop: String }, { errText: any }>({ prop: new String(23) }));
         var p2: PsPromise<{ prop: number }, { errText: any }>                  = p1.then(() => ({ prop: 23 }));
         var p3: PsPromise<number | { errText: any }, Error | { boom: string }> = p2.then<number, { errText: any }, Error, { boom: string }>(() => c, (err) => (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })));
         var p4: PsPromise<number | { errText: any }, PsPromise<number, Error>> = p3.then((res) => res, (err) => Defer.throwBack(c));
@@ -101,7 +101,7 @@ suite("Defer", function DeferTest() {
             return { err2: "return from error catch" };
         });
 
-        function rr(err) {
+        function rr(err: any) {
             return err ? Defer.throwBack({ errErr: "throw from error catch" }) : { err2: "return from error catch 2" };
         }
 

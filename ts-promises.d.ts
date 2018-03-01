@@ -38,8 +38,8 @@ interface PsPromise<T, F> extends Q.Promise<T> {
 
 interface PsDeferred<T, F> extends Q.Deferred<T> {
     promise: PsPromise<T, F>;
-    resolve(result?: T);
-    reject(reason: F);
+    resolve(result?: T): void;
+    reject(reason: F): void;
 }
 
 interface Throws<T1> {
