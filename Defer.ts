@@ -12,12 +12,12 @@ class Defer {
     }
 
 
-    static resolve<T, F>(resolveValue: T): PsPromise<T, F> {
+    static resolve<T = any, F = never>(resolveValue: T): PsPromise<T, F> {
         return <PsPromise<T, F>>Q.resolve<any>(resolveValue);
     }
 
 
-    static reject<T, F>(rejectValue: F): PsPromise<T, F> {
+    static reject<T = never, F = any>(rejectValue: F): PsPromise<T, F> {
         return <PsPromise<T, F>>Q.reject<any>(rejectValue);
     }
 
@@ -41,7 +41,7 @@ class Defer {
     /** Wait for an array of promises to resolve and return the result in a strongly typed array */
     static when<T, F>(promises: PsPromise<T, F>[]): PsPromise<T[], F>;
     static when<T, F>(promises: PsPromise<T, F>[]): PsPromise<T[], F> {
-        return <PsPromise<T[], F>>Q.all(promises);
+        return <PsPromise<T[], F>>Q.all(<any[]>promises);
     }
 
 
@@ -66,9 +66,6 @@ class Defer {
      * @return a promise that returns an array of all of the results returned from the calls to 'actionFunc'
      */
     static runActionForAllInSeries<T, R, F>(args: T[], actionFunc: (def: PsDeferred<R, F>, obj: T) => void, stopOnFirstError: boolean = false): PsPromise<R[], F> {
-        if (typeof actionFunc !== "function") {
-            throw new Error("incorrect arguments (" + args + "," + actionFunc + "), expected (Array, Function)");
-        }
         var initalDfd = Q.defer<R>();
         initalDfd.resolve(<never>null);
         var results: any[] = [];
@@ -79,14 +76,14 @@ class Defer {
                 results.push(res);
                 var dfd = <PsDeferred<R, F>>Q.defer<R>();
                 actionFunc(dfd, arg);
-                return dfd.promise;
+                return <Q.Promise<R>>dfd.promise;
             }
 
             function failureCallNextAction(err: any) {
                 errors.push(err);
                 var dfd = <PsDeferred<R, F>>Q.defer<R>();
                 actionFunc(dfd, arg);
-                return dfd.promise;
+                return <Q.Promise<R>>dfd.promise;
             }
 
             // handle errors if all actions need to run
@@ -174,32 +171,33 @@ class Defer {
      * @return a function with the same signature as 'work' that the returns a cached deferred
      */
     static cachedDeferredTask<T, F>(work: () => PsDeferred<T, F>): () => PsDeferred<T, F> {
-        function cachedDeferResolver(): PsDeferred<T, F> {
-            var cachedDfd = Defer.newDefer<T, F>();
-            var cacheDone = false;
-            var cacheFailed = false;
-            var error: F = <never>null;
-            var cachedData: T = <never>null;
+        var cachedDfd = Defer.newDefer<T, F>();
+        var started = false;
+        var cacheDone = false;
+        var cacheFailed = false;
+        var error: F = <never>null;
+        var cachedData: T = <never>null;
 
-            if (<boolean>cacheDone === true) {
-                if (cacheFailed) {
-                    cachedDfd.reject(error);
+        function cachedDeferResolver(): PsDeferred<T, F> {
+            if (!started) {
+                try {
+                    var workDfd = work();
+                    started = true;
+                    workDfd.promise.then(function cachedPromiseSuccess(res) {
+                        cachedDfd.resolve(res);
+                        cachedData = res;
+                        cacheDone = true;
+                    }, function cachedPromiseFailure(err2) {
+                        cachedDfd.reject(err2);
+                        error = err2;
+                        cacheFailed = true;
+                    });
                 }
-                else {
-                    cachedDfd.resolve(cachedData);
-                }
-            }
-            else {
-                var workDfd = work();
-                workDfd.promise.then(function cachedPromiseSuccess(res) {
-                    cachedDfd.resolve(res);
-                    cachedData = res;
-                    cacheDone = true;
-                }, function cachedPromiseFailure(err) {
+                catch (err) {
                     cachedDfd.reject(err);
                     error = err;
                     cacheFailed = true;
-                });
+                }
             }
 
             return cachedDfd;
@@ -215,9 +213,9 @@ class Defer {
      * @return a function with the same signature as 'work' that the returns a cached promise
      */
     static cachedPromiseTask<T extends Q.IPromise<any>>(work: () => T): () => T {
-        function cachedPromiseResolver(): T {
-            var cachedPromise: T = <never>undefined;
+        var cachedPromise: T = <never>undefined;
 
+        function cachedPromiseResolver(): T {
             if (cachedPromise === undefined) {
                 var workPromise = work();
                 cachedPromise = workPromise || null;

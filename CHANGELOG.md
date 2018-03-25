@@ -4,7 +4,21 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.3.1](N/A) - 2018-02-28
+### [0.4.0](N/A) - 2018-03-25
+#### Changed
+* Update to TypeScript 2.8-rc
+* Completely changed PsPromise to leverage conditional types and conditional type inference.
+* Updated Defer `resolve()` and `reject()` with generic type defaults
+* `PsPromise.then` is no longer compatible with `Promise.then` or `Q.IPromise.then`
+  * `PsPromise` no longer extends `Q.Promise>`
+  * `PsDeferred` no longer extends `Q.Deferred`
+
+#### Fixed
+* Defer `cachedDeferredTask()` and `cachedPromiseTask()` weren't saving their calculated cache data correctly
+
+
+--------
+### [0.3.1](https://github.com/TeamworkGuy2/ts-promises/commit/745e9f5306781df066b9f21f90e72dadbf3bdd8c) - 2018-02-28
 #### Changed
 * Update to TypeScript 2.7
 * Update dependencies: mocha, @types/chai, @types/mocha, @types/node

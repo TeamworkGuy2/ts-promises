@@ -38,9 +38,6 @@ var Defer = /** @class */ (function () {
      */
     Defer.runActionForAllInSeries = function (args, actionFunc, stopOnFirstError) {
         if (stopOnFirstError === void 0) { stopOnFirstError = false; }
-        if (typeof actionFunc !== "function") {
-            throw new Error("incorrect arguments (" + args + "," + actionFunc + "), expected (Array, Function)");
-        }
         var initalDfd = Q.defer();
         initalDfd.resolve(null);
         var results = [];
@@ -138,31 +135,32 @@ var Defer = /** @class */ (function () {
      * @return a function with the same signature as 'work' that the returns a cached deferred
      */
     Defer.cachedDeferredTask = function (work) {
+        var cachedDfd = Defer.newDefer();
+        var started = false;
+        var cacheDone = false;
+        var cacheFailed = false;
+        var error = null;
+        var cachedData = null;
         function cachedDeferResolver() {
-            var cachedDfd = Defer.newDefer();
-            var cacheDone = false;
-            var cacheFailed = false;
-            var error = null;
-            var cachedData = null;
-            if (cacheDone === true) {
-                if (cacheFailed) {
-                    cachedDfd.reject(error);
+            if (!started) {
+                try {
+                    var workDfd = work();
+                    started = true;
+                    workDfd.promise.then(function cachedPromiseSuccess(res) {
+                        cachedDfd.resolve(res);
+                        cachedData = res;
+                        cacheDone = true;
+                    }, function cachedPromiseFailure(err2) {
+                        cachedDfd.reject(err2);
+                        error = err2;
+                        cacheFailed = true;
+                    });
                 }
-                else {
-                    cachedDfd.resolve(cachedData);
-                }
-            }
-            else {
-                var workDfd = work();
-                workDfd.promise.then(function cachedPromiseSuccess(res) {
-                    cachedDfd.resolve(res);
-                    cachedData = res;
-                    cacheDone = true;
-                }, function cachedPromiseFailure(err) {
+                catch (err) {
                     cachedDfd.reject(err);
                     error = err;
                     cacheFailed = true;
-                });
+                }
             }
             return cachedDfd;
         }
@@ -174,8 +172,8 @@ var Defer = /** @class */ (function () {
      * @return a function with the same signature as 'work' that the returns a cached promise
      */
     Defer.cachedPromiseTask = function (work) {
+        var cachedPromise = undefined;
         function cachedPromiseResolver() {
-            var cachedPromise = undefined;
             if (cachedPromise === undefined) {
                 var workPromise = work();
                 cachedPromise = workPromise || null;

@@ -16,7 +16,7 @@ suite("Defer", function DeferTest() {
         var dfd = Defer.newDefer<{ res: number }, { errText: string }>();
         var p1: PsPromise<{ prop: string | String } | null, { errText: any }>  = dfd.promise.then(() => Defer.resolve<{ prop: string } | null, { errText: string }>(null), () => Defer.resolve<{ prop: String }, { errText: any }>({ prop: new String(23) }));
         var p2: PsPromise<{ prop: number }, { errText: any }>                  = p1.then(() => ({ prop: 23 }));
-        var p3: PsPromise<number | { errText: any }, Error | { boom: string }> = p2.then<number, { errText: any }, Error, { boom: string }>(() => c, (err) => (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })));
+        var p3: PsPromise<number | { errText: any }, Error | { boom: string }> = p2.then(() => c, (err) => (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })));
         var p4: PsPromise<number | { errText: any }, PsPromise<number, Error>> = p3.then((res) => res, (err) => Defer.throwBack(c));
 
         var ary = [a, a, a];
@@ -30,25 +30,63 @@ suite("Defer", function DeferTest() {
     });
 
 
-    test("then", function thenTest(done) {
-        var p = Defer.resolve<{ prop: number }, Error>({ prop: 23 });
-
-        p.then((r) => {
-            if (r.prop > 10) {
-                return Defer.resolve<number, { errText: string }>(r.prop);
-            }
-            else {
-                return Defer.reject<number, { errText: string }>({ errText: "p-error" });
-            }
-        }).then((r2) => {
-            return r2.toFixed();
-        }).catch((err) => {
-            return Defer.throw((<Error>err).message ? { errText: (<Error>err).message } : <{ errText: string }>err);
-        }).then((r3) => {
-            asr.equal(r3, "23");
+    test("then-onFulfill", function thenFulfillTest(done) {
+        // case then(promise, void)
+        Defer.resolve<{ prop: number }, Error>({ prop: 23 }).then((r) => {
+            return Defer.resolve<number, { errText: string }>(r.prop);
+        })
+        // case then(throws, void)
+        .then((r2) => {
+            return Defer.throw(r2);
+        })
+        .catch((err) => {
+            return Number(<any>err);
+        })
+        // case then(value, void)
+        .then((r3) => {
+            return r3.toFixed();
+        })
+        .then((r4) => {
+            var _r4: string = r4;
+            asr.equal(r4, "23");
             done();
-        }, (e3) => {
-            asr.ok(false, "unexpecte error: " + JSON.stringify(e3));
+        }, (e4) => {
+            var _e4: never = e4;
+            asr.ok(false, "unexpected error: " + JSON.stringify(e4));
+            done();
+        });
+    });
+
+
+    test("then-onReject", function thenRejectTest(done) {
+        // case then(throws, void)
+        Defer.resolve({ prop: 23 }).then((r) => {
+            return Defer.throw(r.prop);
+        })
+        // case then(void, throws)
+        .then(undefined, (r2) => {
+            return Defer.throw(r2);
+        })
+        // case then(void, promise)
+        .then(undefined, (e3) => {
+            return Defer.reject({ error: "error", value: e3 });
+        })
+        // case then(void, value)
+        .then(undefined, (e4) => {
+            return e4;
+        })
+        .catch((err) => {
+            var _err: never = err;
+            return Defer.throw({ errText: "impossible error" });
+        })
+        .then((r5) => {
+            var _r5: { error: string; value: number } = r5;
+            asr.equal(r5.error, "error");
+            asr.equal(r5.value, 23);
+            done();
+        }, (e5) => {
+            var _e5: { errText: string } = e5;
+            asr.ok(false, "unexpected error: " + JSON.stringify(e5));
             done();
         });
     });
@@ -95,7 +133,7 @@ suite("Defer", function DeferTest() {
     test("catch", function catchTest(done) {
         var init = Defer.reject<{ s: number }, { errText: string }>({ errText: "testing catch" });
 
-        var r1: PsPromise<{ res2: string } | { err2: string }, void> = init.then(function (res) {
+        var r1: PsPromise<{ res2: string } | { err2: string }, never> = init.then(function (res) {
             return { res2: "return result" };
         }, function (err) {
             return { err2: "return from error catch" };
@@ -107,10 +145,10 @@ suite("Defer", function DeferTest() {
 
         var rrr = init.catch(rr);
 
-        var r2 = init.then(function (res) {
-            return <{ res2: string } | { errErr: string }>{ res2: "return result 2" };
+        var r2Tmp: PsPromise<{ res2: string } | { err2: string }, { errErr: string }> = init.then(function (res) {
+            return { res2: "return result 2" };
         }, rr);
-        r2 = r2.catch(function (err) {
+        var r2: PsPromise<{ res2: string } | { err2: string } | { errErr: string }, never> = r2Tmp.catch(function (err) {
             return err;
         });
 

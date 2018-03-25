@@ -24,24 +24,61 @@ suite("Defer", function DeferTest() {
             done();
         });
     });
-    test("then", function thenTest(done) {
-        var p = Defer.resolve({ prop: 23 });
-        p.then(function (r) {
-            if (r.prop > 10) {
-                return Defer.resolve(r.prop);
-            }
-            else {
-                return Defer.reject({ errText: "p-error" });
-            }
-        }).then(function (r2) {
-            return r2.toFixed();
-        }).catch(function (err) {
-            return Defer.throw(err.message ? { errText: err.message } : err);
-        }).then(function (r3) {
-            asr.equal(r3, "23");
+    test("then-onFulfill", function thenFulfillTest(done) {
+        // case then(promise, void)
+        Defer.resolve({ prop: 23 }).then(function (r) {
+            return Defer.resolve(r.prop);
+        })
+            // case then(throws, void)
+            .then(function (r2) {
+            return Defer.throw(r2);
+        })
+            .catch(function (err) {
+            return Number(err);
+        })
+            // case then(value, void)
+            .then(function (r3) {
+            return r3.toFixed();
+        })
+            .then(function (r4) {
+            var _r4 = r4;
+            asr.equal(r4, "23");
             done();
-        }, function (e3) {
-            asr.ok(false, "unexpecte error: " + JSON.stringify(e3));
+        }, function (e4) {
+            var _e4 = e4;
+            asr.ok(false, "unexpected error: " + JSON.stringify(e4));
+            done();
+        });
+    });
+    test("then-onReject", function thenRejectTest(done) {
+        // case then(throws, void)
+        Defer.resolve({ prop: 23 }).then(function (r) {
+            return Defer.throw(r.prop);
+        })
+            // case then(void, throws)
+            .then(undefined, function (r2) {
+            return Defer.throw(r2);
+        })
+            // case then(void, promise)
+            .then(undefined, function (e3) {
+            return Defer.reject({ error: "error", value: e3 });
+        })
+            // case then(void, value)
+            .then(undefined, function (e4) {
+            return e4;
+        })
+            .catch(function (err) {
+            var _err = err;
+            return Defer.throw({ errText: "impossible error" });
+        })
+            .then(function (r5) {
+            var _r5 = r5;
+            asr.equal(r5.error, "error");
+            asr.equal(r5.value, 23);
+            done();
+        }, function (e5) {
+            var _e5 = e5;
+            asr.ok(false, "unexpected error: " + JSON.stringify(e5));
             done();
         });
     });
@@ -89,10 +126,10 @@ suite("Defer", function DeferTest() {
             return err ? Defer.throwBack({ errErr: "throw from error catch" }) : { err2: "return from error catch 2" };
         }
         var rrr = init.catch(rr);
-        var r2 = init.then(function (res) {
+        var r2Tmp = init.then(function (res) {
             return { res2: "return result 2" };
         }, rr);
-        r2 = r2.catch(function (err) {
+        var r2 = r2Tmp.catch(function (err) {
             return err;
         });
         var r3 = init.catch(function (err) {
