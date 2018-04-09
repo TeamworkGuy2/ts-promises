@@ -6,6 +6,13 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 --------
 ### [0.4.0](N/A) - 2018-03-25
 #### Changed
+* Update tsconfig.json with `noImplicitReturns: true` and `forceConsistentCasingInFileNames: true`
+* Added release tarball and npm script `build-package` to package.json referencing external process to generate tarball
+
+
+--------
+### [0.4.0](N/A) - 2018-03-25
+#### Changed
 * Update to TypeScript 2.8-rc
 * Completely changed PsPromise to leverage conditional types and conditional type inference.
 * Updated Defer `resolve()` and `reject()` with generic type defaults
