@@ -212,7 +212,7 @@ class Defer {
      * @param work: the function that performs the work and returns a promise
      * @return a function with the same signature as 'work' that the returns a cached promise
      */
-    static cachedPromiseTask<T extends Q.IPromise<any>>(work: () => T): () => T {
+    static cachedPromiseTask<T extends Q.IPromise<any> | PsPromise<any, any>>(work: () => T): () => T {
         var cachedPromise: T = <never>undefined;
 
         function cachedPromiseResolver(): T {

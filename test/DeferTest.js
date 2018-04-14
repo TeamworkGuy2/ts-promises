@@ -82,6 +82,40 @@ suite("Defer", function DeferTest() {
             done();
         });
     });
+    test("then-generic", function thenGenericTest(done) {
+        // PsPromise.then(T, F) generics
+        function promiser(params, syncSetting) {
+            var items = null;
+            var data = null;
+            var res = syncSetting.syncUpFunc(params, data).then(function (res) {
+                return res;
+            }).catch(function (err) {
+                return Defer.throw({
+                    collectionName: "test-coll",
+                    error: err,
+                    syncingUp: true
+                });
+            });
+            return res;
+        }
+        var settings = {
+            convertUrlToSyncDownFunc: function (url) { return function (params) { return Defer.resolve([{ pnum: 1.2, modifiedUtc: "" }, { pnum: 5.0, modifiedUtc: "" }]); }; },
+            convertUrlToSyncUpFunc: function (url) { return function (params) { return Defer.resolve([{ pp: 0.5, modifiedUtc: new Date() }, { pp: 0.123, modifiedUtc: new Date() }]); }; },
+            copyObjectFunc: function (obj) { return ({ pp: obj.pp, modifiedUtc: obj.modifiedUtc }); },
+            findFilterFunc: function (obj) { return ({ pp: obj.pnum }); },
+            syncUpFunc: function (params, items) { return Defer.resolve(true); },
+            toSvcObject: function (obj) { return ({ pnum: obj.pp, modifiedUtc: obj.modifiedUtc.toString() }); }
+        };
+        var r1 = promiser({ searchPhrase: "abc" }, settings);
+        r1.done(function (success) {
+            asr.ok(success, "unexpected error");
+            done();
+        });
+        // Promise<..., never>
+        var r2 = Defer.newDefer().promise.then(function (res) {
+            Defer.resolve({ name: "" });
+        });
+    });
     test("throwBack", function throwBackTest(done) {
         try {
             var res = Defer.throwBack("my-error");

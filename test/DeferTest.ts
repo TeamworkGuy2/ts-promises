@@ -5,6 +5,28 @@ import Defer = require("../Defer");
 
 var asr = chai.assert;
 
+interface SyncSettings<E extends F, F, S, R> {
+    findFilterFunc: (item: S) => F;
+    copyObjectFunc: (item: E) => E;
+    convertUrlToSyncDownFunc?: (url: string) => (params: any) => PsPromise<S[], R>;
+    convertUrlToSyncUpFunc?: (url: string) => (params: any, items: S[]) => PsPromise<any, R>;
+}
+
+interface SyncUpSettings<E extends F, F, P, S, U, R> {
+    syncUpFunc: (params: P, items: S[]) => PsPromise<U, R>;
+    toSvcObject: (item: E) => S;
+}
+
+declare interface SyncSettingsWithUp<E extends F, F, P, S, U, R> extends SyncSettings<E, F, S, R>, SyncUpSettings<E, F, P, S, U, R> {
+}
+
+interface SyncError {
+    collectionName: string;
+    syncingUp ?: boolean;
+    syncingDown ?: boolean;
+    error: any;
+}
+
 
 suite("Defer", function DeferTest() {
 
@@ -88,6 +110,46 @@ suite("Defer", function DeferTest() {
             var _e5: { errText: string } = e5;
             asr.ok(false, "unexpected error: " + JSON.stringify(e5));
             done();
+        });
+    });
+
+
+    test("then-generic", function thenGenericTest(done) {
+        // PsPromise.then(T, F) generics
+        function promiser<E extends F, F, P, S, U, R>(params: P, syncSetting: SyncSettingsWithUp<E, F, P, S, U, R>) {
+            var items: E[] = <never>null;
+            var data: S[] = <never>null;
+
+            var res = syncSetting.syncUpFunc(params, data).then(function (res) {
+                return res;
+            }).catch(function (err): Throws<SyncError> {
+                return Defer.throw({
+                    collectionName: "test-coll",
+                    error: err,
+                    syncingUp: true
+                });
+            });
+            return res;
+        }
+
+        var settings: SyncSettingsWithUp<{ pp: number; modifiedUtc: Date }, { pp: number }, { searchPhrase: string }, { pnum: number; modifiedUtc: string }, boolean, SyncError> = {
+            convertUrlToSyncDownFunc: (url) => (params) => Defer.resolve([{ pnum: 1.2, modifiedUtc: "" }, { pnum: 5.0, modifiedUtc: "" }]),
+            convertUrlToSyncUpFunc: (url) => (params) => Defer.resolve([{ pp: 0.5, modifiedUtc: new Date() }, { pp: 0.123, modifiedUtc: new Date() }]),
+            copyObjectFunc: (obj) => ({ pp: obj.pp, modifiedUtc: obj.modifiedUtc }),
+            findFilterFunc: (obj) => ({ pp: obj.pnum }),
+            syncUpFunc: (params, items) => Defer.resolve<boolean, SyncError>(true),
+            toSvcObject: (obj) => ({ pnum: obj.pp, modifiedUtc: obj.modifiedUtc.toString() })
+        };
+
+        var r1: PsPromise<boolean, SyncError> = promiser({ searchPhrase: "abc" }, settings);
+        r1.done((success) => {
+            asr.ok(success, "unexpected error");
+            done();
+        });
+
+        // Promise<..., never>
+        var r2: PsPromise<{ name: string }, SyncError> = Defer.newDefer<{ name: string }, SyncError>().promise.then((res) => {
+            Defer.resolve<{ name: string }, never>({ name: "" });
         });
     });
 

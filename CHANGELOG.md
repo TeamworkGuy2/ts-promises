@@ -4,7 +4,14 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.4.0](N/A) - 2018-03-25
+### [0.4.2](N/A) - 2018-04-14
+#### Fixed
+* Fixed `PsPromise.then()` and `catch()` definitions to return a PsPromise<..., ...> type when presented with a generic type or union type.
+* Move `@types/q` from `devDependencies` to `dependencies`
+
+
+--------
+### [0.4.1](https://github.com/TeamworkGuy2/ts-promises/commit/8c6924330afa032c6619ee175133233b5ed7b43b) - 2018-04-09
 #### Changed
 * Update tsconfig.json with `noImplicitReturns: true` and `forceConsistentCasingInFileNames: true`
 * Added release tarball and npm script `build-package` to package.json referencing external process to generate tarball
