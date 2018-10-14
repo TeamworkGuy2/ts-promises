@@ -1,6 +1,6 @@
 {
   "name": "ts-promises",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "TypeScript wrappers for strongly typed promises/deferred objects, extends the promise/A+ spec (currently uses Q.js).",
   "author": "TeamworkGuy2",
   "homepage": "https://github.com/TeamworkGuy2/ts-promises",
@@ -14,14 +14,13 @@
     "q": "~1.5.0"
   },
   "devDependencies": {
-    "@types/chai": "~4.1.2",
-    "@types/mocha": "~5.0.0",
-    "chai": "~4.1.0",
-    "mocha": "~5.0.0",
-    "typescript": "~2.8.0"
+    "@types/chai": "~4.1.6",
+    "@types/mocha": "~5.2.5",
+    "chai": "~4.2.0",
+    "mocha": "~5.2.0",
+    "typescript": "~3.1.3"
   },
   "scripts": {
-    "build-package": "node ../package-tarball/index.js",
     "test": "mocha -u tdd --recursive",
     "tsc": "tsc"
   }

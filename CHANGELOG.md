@@ -4,7 +4,14 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.4.2](N/A) - 2018-04-14
+### [0.4.3](N/A) - 2018-10-14
+#### Changed
+* Update to TypeScript 3.1
+* Enable `tsconfig.json` `strict` and fix compile errors
+
+
+--------
+### [0.4.2](https://github.com/TeamworkGuy2/ts-promises/commit/7497a3be5c9d262b77d9b0703cf76b57438e37e7) - 2018-04-14
 #### Fixed
 * Fixed `PsPromise.then()` and `catch()` definitions to return a PsPromise<..., ...> type when presented with a generic type or union type.
 * Move `@types/q` from `devDependencies` to `dependencies`

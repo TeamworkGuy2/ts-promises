@@ -68,22 +68,22 @@ class Defer {
     static runActionForAllInSeries<T, R, F>(args: T[], actionFunc: (def: PsDeferred<R, F>, obj: T) => void, stopOnFirstError: boolean = false): PsPromise<R[], F> {
         var initalDfd = Q.defer<R>();
         initalDfd.resolve(<never>null);
-        var results: any[] = [];
-        var errors: any[] = [];
+        var results: R[] = [];
+        var errors: F[] = [];
         // for each action/argument combination, chain it to the previous action result
-        var promise = args.reduce(function runActionForArgInSeries(promise, arg) {
+        var promise = args.reduce(function runActionForArgInSeries(promise: Q.Promise<R>, arg: T) {
             function successCallNextAction(res: R) {
                 results.push(res);
                 var dfd = <PsDeferred<R, F>>Q.defer<R>();
                 actionFunc(dfd, arg);
-                return <Q.Promise<R>>dfd.promise;
+                return <Q.Promise<R> & Q.IWhenable<R>>dfd.promise;
             }
 
-            function failureCallNextAction(err: any) {
+            function failureCallNextAction(err: F) {
                 errors.push(err);
                 var dfd = <PsDeferred<R, F>>Q.defer<R>();
                 actionFunc(dfd, arg);
-                return <Q.Promise<R>>dfd.promise;
+                return <Q.Promise<R> & Q.IWhenable<R>>dfd.promise;
             }
 
             // handle errors if all actions need to run
@@ -95,7 +95,7 @@ class Defer {
             }
         }, initalDfd.promise);
 
-        return <PsPromise<R[], F>>promise.then(function (res) {
+        return <PsPromise<R[], F>>promise.then(function (res: R) {
             results.push(res);
             // remove the first item since the initial promise in the args.reduce(...) call is a dummy promise to start the chain
             results.shift();
