@@ -4,16 +4,24 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.4.3](N/A) - 2018-10-14
+### [0.4.4](N/A) - 2018-10-23
+#### Fixed
+* Fixed returning `PsPromise<..., never>` from a `then()` call not falling back to the `then()`'s promise error type
+
+
+--------
+### [0.4.3](https://github.com/TeamworkGuy2/ts-promises/commit/812104f065d8131e1b785b2a4f22a8b9825457a2) - 2018-10-14
 #### Changed
 * Update to TypeScript 3.1
+* Update dev dependencies and @types
 * Enable `tsconfig.json` `strict` and fix compile errors
+* Removed compiled bin tarball in favor of git tags
 
 
 --------
 ### [0.4.2](https://github.com/TeamworkGuy2/ts-promises/commit/7497a3be5c9d262b77d9b0703cf76b57438e37e7) - 2018-04-14
 #### Fixed
-* Fixed `PsPromise.then()` and `catch()` definitions to return a PsPromise<..., ...> type when presented with a generic type or union type.
+* Fixed `PsPromise.then()` and `catch()` definitions to return a `PsPromise<..., ...>` type when presented with a generic type or union type.
 * Move `@types/q` from `devDependencies` to `dependencies`
 
 

@@ -1,6 +1,6 @@
 {
   "name": "ts-promises",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "TypeScript wrappers for strongly typed promises/deferred objects, extends the promise/A+ spec (currently uses Q.js).",
   "author": "TeamworkGuy2",
   "homepage": "https://github.com/TeamworkGuy2/ts-promises",

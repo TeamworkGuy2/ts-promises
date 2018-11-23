@@ -29,18 +29,13 @@ interface SyncError {
 
 
 suite("Defer", function DeferTest() {
+    function log(...args: any[]) {
+        // console.log() or other
+    }
+
 
     test("when", function whenTest(done) {
         var a = Defer.resolve<string, void>("start");
-        var b = Defer.resolve<{ s: number }, void>({ s: 22 });
-        var c = Defer.resolve<number, Error>(10);
-
-        var dfd = Defer.newDefer<{ res: number }, { errText: string }>();
-        var p1: PsPromise<{ prop: string | String } | null, { errText: any }>  = dfd.promise.then(() => Defer.resolve<{ prop: string } | null, { errText: string }>(null), () => Defer.resolve<{ prop: String }, { errText: any }>({ prop: new String(23) }));
-        var p2: PsPromise<{ prop: number }, { errText: any }>                  = p1.then(() => ({ prop: 23 }));
-        var p3: PsPromise<number | { errText: any }, Error | { boom: string }> = p2.then(() => c, (err) => (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })));
-        var p4: PsPromise<number | { errText: any }, PsPromise<number, Error>> = p3.then((res) => res, (err) => Defer.throwBack(c));
-
         var ary = [a, a, a];
         Defer.when(ary).then(function (res) {
             asr.deepEqual(res, ["start", "start", "start"]);
@@ -52,7 +47,7 @@ suite("Defer", function DeferTest() {
     });
 
 
-    test("then-onFulfill", function thenFulfillTest(done) {
+    test("then-chain", function thenFulfillTest(done) {
         // case then(promise, void)
         Defer.resolve<{ prop: number }, Error>({ prop: 23 }).then((r) => {
             return Defer.resolve<number, { errText: string }>(r.prop);
@@ -62,7 +57,7 @@ suite("Defer", function DeferTest() {
             return Defer.throw(r2);
         })
         .catch((err) => {
-            return Number(<any>err);
+            return Number(err);
         })
         // case then(value, void)
         .then((r3) => {
@@ -77,6 +72,31 @@ suite("Defer", function DeferTest() {
             asr.ok(false, "unexpected error: " + JSON.stringify(e4));
             done();
         });
+    });
+
+
+    test("then-chain-throwPromise", function thenChainThrowPromise(done) {
+        var dfd = Defer.newDefer<{ res: number }, { errText: string }>();
+        // case then(promise, promise)
+        var p1: PsPromise<{ prop: string | String } | null, { errText: any }> = dfd.promise.then(() => Defer.resolve<{ prop: string } | null, never>(null), () => Defer.resolve<{ prop: String }, { errText: any }>({ prop: new String(23) }));
+        // case then(value)
+        var p2: PsPromise<{ prop: number }, { errText: any }> = p1.then(() => ({ prop: 23 }));
+        // case then(promise, throws | value)
+        var p3: PsPromise<number | { errText: any }, Error | { boom: string }> = p2.then(() => Defer.resolve<number, Error>(10), (err) => (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })));
+        // case then(value, throws)
+        var p4: PsPromise<number | { errText: any }, PsPromise<number, Error>> = p3.then((res) => res, (err) => Defer.throwBack(Defer.resolve<number, Error>(10)));
+
+        p4.done((res) => {
+            var expectedRes: number | { errText: any } = res;
+            asr.equal(expectedRes, 10);
+            done();
+        }, (err) => {
+            var expectedErr: PsPromise<number, Error> = err;
+            asr.fail(expectedErr, undefined, "did not expect error");
+            done();
+        });
+
+        dfd.resolve({ res: 10 });
     });
 
 
@@ -153,6 +173,32 @@ suite("Defer", function DeferTest() {
         });
     });
 
+    function convert<T>(tt?: () => T): (T extends null | undefined ? "null | undefined" : (T extends void | never ? "void | never" : T)) {
+        return <any>undefined;
+    }
+
+    test("then-return-promise", function thenReturnPromiseTest(done) {
+        var pIds = Defer.resolve<number[], SyntaxError>([11, 22, 33, 44, 55]).catch((err) => log(err));
+        var isAdmin = false;
+        convert(function () { });
+        convert(function () { return undefined; });
+        convert(function () { return 90; });
+        convert(function () { while (true); });
+
+        Defer.reject<{ isAdmin: boolean }, ReferenceError>(new ReferenceError("ref fail")).then((res) => {
+            isAdmin = res.isAdmin;
+            return pIds;
+        }).done((res) => {
+            var nums: number[] = res;
+            asr.ok(false, "expected failure, received result " + JSON.stringify(nums));
+            done();
+        }, (err) => {
+            var errValue: ReferenceError = err;
+            asr.equal(err.message, "ref fail", typeof errValue);
+            done();
+        });
+    });
+
 
     test("throwBack", function throwBackTest(done) {
         try {
@@ -166,7 +212,7 @@ suite("Defer", function DeferTest() {
     });
 
 
-    test("catch simple", function catchSimpleTest(done) {
+    test("catch-simple", function catchSimpleTest(done) {
         var init = Defer.reject<{ res: string }, { err: string }>({ err: "hmm" });
 
         var r1 = init.catch((err) => {
@@ -193,7 +239,7 @@ suite("Defer", function DeferTest() {
 
 
     test("catch", function catchTest(done) {
-        var init = Defer.reject<{ s: number }, { errText: string }>({ errText: "testing catch" });
+        var init = Defer.reject<{ sip: number }, { errText: string }>({ errText: "testing catch" });
 
         var r1: PsPromise<{ res2: string } | { err2: string }, never> = init.then(function (res) {
             return { res2: "return result" };
@@ -214,7 +260,7 @@ suite("Defer", function DeferTest() {
             return err;
         });
 
-        var r3: PsPromise<string | { s: number }, string | { errText: string }> = <any>init.catch(function (err) {
+        var r3: PsPromise<string | { sip: number }, string | { errText: string }> = init.catch(function (err) {
             if (err.errText) {
                 return err.errText;
             }
@@ -229,7 +275,7 @@ suite("Defer", function DeferTest() {
 
         Defer.when([r1, r2, r3, r4]).then(function ([res1, res2, res3, res4]) {
             asr.deepEqual(res1, { err2: "return from error catch" });
-            asr.deepEqual(res2, <any>{ errErr: "throw from error catch" });
+            asr.deepEqual(res2, { errErr: "throw from error catch" });
             asr.equal(res3, "testing catch");
             asr.equal(res4, undefined);
             done();

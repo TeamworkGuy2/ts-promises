@@ -6,15 +6,15 @@ var chai = require("chai");
 var Defer = require("../Defer");
 var asr = chai.assert;
 suite("Defer", function DeferTest() {
+    function log() {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
+        // console.log() or other
+    }
     test("when", function whenTest(done) {
         var a = Defer.resolve("start");
-        var b = Defer.resolve({ s: 22 });
-        var c = Defer.resolve(10);
-        var dfd = Defer.newDefer();
-        var p1 = dfd.promise.then(function () { return Defer.resolve(null); }, function () { return Defer.resolve({ prop: new String(23) }); });
-        var p2 = p1.then(function () { return ({ prop: 23 }); });
-        var p3 = p2.then(function () { return c; }, function (err) { return (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })); });
-        var p4 = p3.then(function (res) { return res; }, function (err) { return Defer.throwBack(c); });
         var ary = [a, a, a];
         Defer.when(ary).then(function (res) {
             asr.deepEqual(res, ["start", "start", "start"]);
@@ -24,7 +24,7 @@ suite("Defer", function DeferTest() {
             done();
         });
     });
-    test("then-onFulfill", function thenFulfillTest(done) {
+    test("then-chain", function thenFulfillTest(done) {
         // case then(promise, void)
         Defer.resolve({ prop: 23 }).then(function (r) {
             return Defer.resolve(r.prop);
@@ -49,6 +49,27 @@ suite("Defer", function DeferTest() {
             asr.ok(false, "unexpected error: " + JSON.stringify(e4));
             done();
         });
+    });
+    test("then-chain-throwPromise", function thenChainThrowPromise(done) {
+        var dfd = Defer.newDefer();
+        // case then(promise, promise)
+        var p1 = dfd.promise.then(function () { return Defer.resolve(null); }, function () { return Defer.resolve({ prop: new String(23) }); });
+        // case then(value)
+        var p2 = p1.then(function () { return ({ prop: 23 }); });
+        // case then(promise, throws | value)
+        var p3 = p2.then(function () { return Defer.resolve(10); }, function (err) { return (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })); });
+        // case then(value, throws)
+        var p4 = p3.then(function (res) { return res; }, function (err) { return Defer.throwBack(Defer.resolve(10)); });
+        p4.done(function (res) {
+            var expectedRes = res;
+            asr.equal(expectedRes, 10);
+            done();
+        }, function (err) {
+            var expectedErr = err;
+            asr.fail(expectedErr, undefined, "did not expect error");
+            done();
+        });
+        dfd.resolve({ res: 10 });
     });
     test("then-onReject", function thenRejectTest(done) {
         // case then(throws, void)
@@ -116,6 +137,30 @@ suite("Defer", function DeferTest() {
             Defer.resolve({ name: "" });
         });
     });
+    function convert(tt) {
+        return undefined;
+    }
+    test("then-return-promise", function thenReturnPromiseTest(done) {
+        var pIds = Defer.resolve([11, 22, 33, 44, 55]).catch(function (err) { return log(err); });
+        var isAdmin = false;
+        convert(function () { });
+        convert(function () { return undefined; });
+        convert(function () { return 90; });
+        convert(function () { while (true)
+            ; });
+        Defer.reject(new ReferenceError("ref fail")).then(function (res) {
+            isAdmin = res.isAdmin;
+            return pIds;
+        }).done(function (res) {
+            var nums = res;
+            asr.ok(false, "expected failure, received result " + JSON.stringify(nums));
+            done();
+        }, function (err) {
+            var errValue = err;
+            asr.equal(err.message, "ref fail", typeof errValue);
+            done();
+        });
+    });
     test("throwBack", function throwBackTest(done) {
         try {
             var res = Defer.throwBack("my-error");
@@ -127,7 +172,7 @@ suite("Defer", function DeferTest() {
             done();
         }
     });
-    test("catch simple", function catchSimpleTest(done) {
+    test("catch-simple", function catchSimpleTest(done) {
         var init = Defer.reject({ err: "hmm" });
         var r1 = init.catch(function (err) {
             asr.equal(err.err, "hmm");
