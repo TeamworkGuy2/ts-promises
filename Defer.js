@@ -5,40 +5,40 @@ var Q = require("q");
 var Defer = /** @class */ (function () {
     function Defer() {
     }
-    /** Create a Q deferred object with a 'promise' property
-     * @return a PS deferred object with success and error return values
-     */
+    /** Create a deferred object with a 'promise' property and 'resolve' and 'reject' methods */
     Defer.newDefer = function () {
-        return Q.defer();
+        return Defer.promiseImpl.defer();
     };
     Defer.resolve = function (resolveValue) {
-        return Q.resolve(resolveValue);
+        return Defer.promiseImpl.resolve(resolveValue);
     };
     Defer.reject = function (rejectValue) {
-        return Q.reject(rejectValue);
+        return Defer.promiseImpl.reject(rejectValue);
     };
     Defer.when = function (promises) {
-        return Q.all(promises);
+        return Defer.promiseImpl.all(promises);
     };
     /** Takes an argument and throws it, useful for inferring the type of TypeScript promises without having to explicitly give the type */
     Defer.throw = function (error) {
         throw error;
     };
-    /** Takes an argument and throws it, useful for inferring the type of TypeScript promises without having to explicitly give the type */
+    /** Takes an argument and throws it, useful for inferring the type of TypeScript promises without having to explicitly give the type
+     * (Same as throw() but for earlier versions of TypeScript when throw was a keyword not allowed as a method name)
+     */
     Defer.throwBack = function (error) {
         throw error;
     };
     /** Run each object from 'args' through 'actionFunc' and return a deferred promise that completes when all of the actions complete
-     * @param args: an array of objects to pass individually to 'actionFunc''
-     * @param actionFunc: this action is called with a unique deferred promise that must be resolved or rejected
+     * @param args an array of objects to pass individually to 'actionFunc''
+     * @param actionFunc this action is called with a unique deferred promise that must be resolved or rejected
      * somewhere in the action, and each object from 'args' as a parameter
-     * @param failOnFirstError: true to stop running the actions when the first one throws an error,
+     * @param failOnFirstError true to stop running the actions when the first one throws an error,
      * else continue running and return a list of successful results
      * @return a promise that returns an array of all of the results returned from the calls to 'actionFunc'
      */
     Defer.runActionForAllInSeries = function (args, actionFunc, stopOnFirstError) {
         if (stopOnFirstError === void 0) { stopOnFirstError = false; }
-        var initalDfd = Q.defer();
+        var initalDfd = Defer.promiseImpl.defer();
         initalDfd.resolve(null);
         var results = [];
         var errors = [];
@@ -46,13 +46,13 @@ var Defer = /** @class */ (function () {
         var promise = args.reduce(function runActionForArgInSeries(promise, arg) {
             function successCallNextAction(res) {
                 results.push(res);
-                var dfd = Q.defer();
+                var dfd = Defer.promiseImpl.defer();
                 actionFunc(dfd, arg);
                 return dfd.promise;
             }
             function failureCallNextAction(err) {
                 errors.push(err);
-                var dfd = Q.defer();
+                var dfd = Defer.promiseImpl.defer();
                 actionFunc(dfd, arg);
                 return dfd.promise;
             }
@@ -71,35 +71,24 @@ var Defer = /** @class */ (function () {
             return results;
         });
     };
-    /** Chain one deferred to another, so resolve and reject callbacks pass from 'srcPromise' to 'dstPromise'
-     * @param srcPromise: the source promise to listen to via Promise.then()
-     * @param dstPromise: the destination to pipe 'srcPromise' Promise.resolve() and Promise.reject() callbacks to
+    /** Chain one deferred to another, so resolve and reject callbacks pass from 'srcPromise' to 'dstDfd'.
+     * With optional success and failure functions that are called before the 'dstDfd' is resolved/rejected.
+     * @param srcPromise the source promise to listen to via Promise.then()
+     * @param dstDfd the destination to pipe 'srcPromise' Promise.resolve() and Promise.reject() callbacks to
+     * @param successCb optional function to call if 'srcPromise' succeeds,
+     * which can optionally modify the result forwarded to 'dstDfd'
+     * @param failureCb optional function to call if 'srcPromise' fails,
+     * which can optionally modify the error forwarded to 'dstDfd'
      */
-    Defer.chainTo = function (srcPromise, dstDfd) {
-        srcPromise.then(function chainedPromiseSuccess(res) {
-            dstDfd.resolve(res);
-        }, function chainedPromiseFailure(err) {
-            dstDfd.reject(err);
-        });
-    };
-    /** Chain one deferred to another, so resolve and reject callbacks pass from 'srcPromise' to 'dstPromise'.
-     * With optional success and failure functions that are called before the 'dstProimse' is resolved/rejected.
-     * @param srcPromise: the source promise to listen to via Promise.then()
-     * @param dstPromise: the destination to pipe 'srcPromise' Promise.resolve() and Promise.reject() callbacks to
-     * @param [successCall]: optional function to call if 'srcPromise' succeeds,
-     * which can optionally modify the result forwarded to 'dstPromise'
-     * @param [failureCall]: optional function to call if 'srcPromise' fails,
-     * which can optionally modify the error forwarded to 'dstPromise'
-     */
-    Defer.chainToWith = function (srcPromise, dstDfd, successCall, failureCall) {
+    Defer.chainToWith = function (srcPromise, dstDfd, successCb, failureCb) {
         if (srcPromise == null || dstDfd == null) {
-            throw new Error("incorrect usage (" + srcPromise + ", " + dstDfd + ", ...), expected (Q.IPromise, Q.Deferred, ...)");
+            throw new Error("incorrect usage (" + srcPromise + ", " + dstDfd + ", ...), expected (PsPromise, PsDeferred, ...)");
         }
-        srcPromise.then(function chainedWithActionPromiseSucess(res) {
-            if (successCall) {
+        srcPromise.then(function chainedPromiseSucess(res) {
+            if (successCb) {
                 var newRes = null;
                 try {
-                    newRes = successCall(res);
+                    newRes = successCb(res);
                 }
                 catch (successCallErr) {
                     dstDfd.reject(successCallErr);
@@ -109,12 +98,12 @@ var Defer = /** @class */ (function () {
                 }
             }
             dstDfd.resolve(res);
-        }, function chainedWithActionPromiseFailure(err) {
+        }, function chainedPromiseFailure(err) {
             var newErr = null;
-            if (failureCall) {
+            if (failureCb) {
                 var tmpErr = null;
                 try {
-                    tmpErr = failureCall(err);
+                    tmpErr = failureCb(err);
                 }
                 catch (failureCallErr) {
                     tmpErr = failureCallErr;
@@ -130,9 +119,9 @@ var Defer = /** @class */ (function () {
         });
     };
     /** Caches an asynchronous task that returns a deferred so that subsequent calls to
-     * the task resolve or reject with the initial cached result or error
-     * @param work: the function that performs the work and returns a deferred
-     * @return a function with the same signature as 'work' that the returns a cached deferred
+     * the task resolve or reject with the initial cached result or error.
+     * @param work the function that performs the work and returns a deferred
+     * @return a function with the same signature as 'work' that returns a cached deferred
      */
     Defer.cachedDeferredTask = function (work) {
         var cachedDfd = Defer.newDefer();
@@ -167,21 +156,22 @@ var Defer = /** @class */ (function () {
         return cachedDeferResolver;
     };
     /** Caches an asynchronous task that returns a promise so that subsequent calls to
-     * the task resolve or reject with the initial cached result or error
-     * @param work: the function that performs the work and returns a promise
-     * @return a function with the same signature as 'work' that the returns a cached promise
+     * the task resolve or reject with the initial cached result or error.
+     * @param work the function that performs the work and returns a promise
+     * @return a function with the same signature as 'work' that returns a cached promise
      */
     Defer.cachedPromiseTask = function (work) {
         var cachedPromise = undefined;
         function cachedPromiseResolver() {
             if (cachedPromise === undefined) {
-                var workPromise = work();
-                cachedPromise = workPromise || null;
+                var pWork = work();
+                cachedPromise = pWork || null;
             }
             return cachedPromise;
         }
         return cachedPromiseResolver;
     };
+    Defer.promiseImpl = Q;
     return Defer;
 }());
 module.exports = Defer;

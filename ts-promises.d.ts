@@ -1,6 +1,4 @@
-﻿/// <reference types="q" />
-
-interface PromiseThen<T, F> {
+﻿interface PromiseThen<T, F> {
     <T1 = void, F1 = void>(onFulfill?: (value: T) => T1, onReject?: (error: F) => F1):
         // return
         PsPromise<
@@ -74,15 +72,17 @@ interface PromiseCatch<T, F> {
         >;
 }
 
-interface PsPromise<T, F> /* extends Q.Promise<T> */ {
+interface PsPromise<T, F> {
     then: PromiseThen<T, F>;
     done: PromiseDone<T, F>;
     catch: PromiseCatch<T, F>;
 
-    isFulfilled: Q.Promise<T>["isFulfilled"];
-    isRejected: Q.Promise<T>["isRejected"];
-    isPending: Q.Promise<T>["isPending"];
-    inspect: Q.Promise<T>["inspect"];
+    /** Returns whether a given promise is in the fulfilled state. When the static version is used on non-promises, the result is always true. */
+    isFulfilled(): boolean;
+    /** Returns whether a given promise is in the rejected state. When the static version is used on non-promises, the result is always false. */
+    isRejected(): boolean;
+    /** Returns whether a given promise is in the pending state. When the static version is used on non-promises, the result is always false. */
+    isPending(): boolean;
 }
 
 interface PsDeferred<T, F> {

@@ -4,7 +4,19 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.4.4](N/A) - 2018-10-23
+### [0.5.0](N/A) - 2018-12-29
+#### Changed
+* Update to TypeScript 3.1 and fix compile errors
+* Added public `Defer.promiseImpl` property which can be overwritten with a custom defer/promise implementation (Q is the default)
+* `PsPromise` `isFulfilled()`, `isRejected()`, and `isPending()` no longer based on Q.js definition, compatible with bluebird promises
+
+#### Removed
+* `Defer.chainTo()` since it doesn't save much code and obfuscates what's happening
+* `PsPromise.inspect()` removed to decouple from Q.js specific features
+
+
+--------
+### [0.4.4](https://github.com/TeamworkGuy2/ts-promises/commit/f0784e1b9a6263fb6ccccae713f658679438bb2b) - 2018-11-23
 #### Fixed
 * Fixed returning `PsPromise<..., never>` from a `then()` call not falling back to the `then()`'s promise error type
 
