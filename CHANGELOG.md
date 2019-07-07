@@ -4,9 +4,15 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.5.0](N/A) - 2018-12-29
+### [0.5.1](N/A) - 2019-07-06
 #### Changed
-* Update to TypeScript 3.1 and fix compile errors
+* Update to TypeScript 3.5
+
+
+--------
+### [0.5.0](https://github.com/TeamworkGuy2/ts-promises/commit/5538831a4e473328603c068f36c186282ee179a6) - 2018-12-29
+#### Changed
+* Update to TypeScript 3.2 and fix compile errors
 * Added public `Defer.promiseImpl` property which can be overwritten with a custom defer/promise implementation (Q is the default)
 * `PsPromise` `isFulfilled()`, `isRejected()`, and `isPending()` no longer based on Q.js definition, compatible with bluebird promises
 
