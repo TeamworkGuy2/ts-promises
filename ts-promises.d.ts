@@ -50,10 +50,6 @@
         >;
 }
 
-interface PromiseDone<T, F> {
-    (onFulfill?: (value: T) => any, onReject?: (error: F) => any): void;
-}
-
 interface PromiseCatch<T, F> {
     <F1 = void>(onReject?: (error: F) => F1):
         // return
@@ -74,15 +70,7 @@ interface PromiseCatch<T, F> {
 
 interface PsPromise<T, F> {
     then: PromiseThen<T, F>;
-    done: PromiseDone<T, F>;
     catch: PromiseCatch<T, F>;
-
-    /** Returns whether a given promise is in the fulfilled state. When the static version is used on non-promises, the result is always true. */
-    isFulfilled(): boolean;
-    /** Returns whether a given promise is in the rejected state. When the static version is used on non-promises, the result is always false. */
-    isRejected(): boolean;
-    /** Returns whether a given promise is in the pending state. When the static version is used on non-promises, the result is always false. */
-    isPending(): boolean;
 }
 
 interface PsDeferred<T, F> {

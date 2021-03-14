@@ -2,7 +2,7 @@ TypeScript Typed Promises
 ==============
 
 Dependencies:
-Q.js
+none (`Defer.promiseImpl` must be assigned a value before the Defer class can be used)
 
 Utility for creating and managing strongly typed promise/A+ type promises. 
 `PsPromise` differs in that it also tracks the rejection type of the promise allow for powerful error tracking and handling.

@@ -1,5 +1,4 @@
 "use strict";
-var Q = require("q");
 /** Defer - functions for strongly typed promise/deferred handling
  */
 var Defer = /** @class */ (function () {
@@ -9,9 +8,11 @@ var Defer = /** @class */ (function () {
     Defer.newDefer = function () {
         return Defer.promiseImpl.defer();
     };
+    /** Create a promise already resolved with the given value */
     Defer.resolve = function (resolveValue) {
         return Defer.promiseImpl.resolve(resolveValue);
     };
+    /** Create a promise already rejected with the given value */
     Defer.reject = function (rejectValue) {
         return Defer.promiseImpl.reject(rejectValue);
     };
@@ -171,7 +172,25 @@ var Defer = /** @class */ (function () {
         }
         return cachedPromiseResolver;
     };
-    Defer.promiseImpl = Q;
+    /** This is the promise implementation for this library. Native JS 'Promise' is used as the default implementation */
+    Defer.promiseImpl = {
+        defer: function () {
+            var resolve = null;
+            var reject = null;
+            var p = new Promise(function (res, rej) {
+                resolve = res;
+                reject = rej;
+            });
+            return {
+                promise: p,
+                resolve: resolve,
+                reject: reject,
+            };
+        },
+        resolve: function (value) { return Promise.resolve(value); },
+        reject: function (reason) { return Promise.reject(reason); },
+        all: function (promises) { return Promise.all(promises); },
+    };
     return Defer;
 }());
 module.exports = Defer;

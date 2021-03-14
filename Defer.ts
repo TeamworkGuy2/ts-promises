@@ -1,14 +1,31 @@
-﻿import Q = require("q");
-
+﻿
 /** Defer - functions for strongly typed promise/deferred handling
  */
 class Defer {
+    /** This is the promise implementation for this library. Native JS 'Promise' is used as the default implementation */
     public static promiseImpl: {
         defer<T, F>(): PsDeferred<T, F>;
         resolve<T = any, F = never>(value: T): PsPromise<T, F>;
         reject<T = never, F = any>(error: F): PsPromise<T, F>;
         all<T, F>(promises: PsPromise<T, F>[]): PsPromise<T[], F>;
-    } = <{ defer: any; resolve: any; reject: any; all: any }>Q;
+    } = {
+        defer: () => {
+            var resolve: (value?: any) => void = <any>null;
+            var reject: (reason?: any) => void = <any>null;
+            var p = new Promise((res, rej) => {
+                resolve = res;
+                reject = rej;
+            });
+            return {
+                promise: <PsPromise<any, any>>p,
+                resolve: resolve,
+                reject: reject,
+            };
+        },
+        resolve: (value) => <any>Promise.resolve(value),
+        reject: (reason) => <any>Promise.reject(reason),
+        all: (promises) => <any>Promise.all(<any[]>promises),
+    };
 
 
     /** Create a deferred object with a 'promise' property and 'resolve' and 'reject' methods */
@@ -17,11 +34,13 @@ class Defer {
     }
 
 
+    /** Create a promise already resolved with the given value */
     static resolve<T = any, F = never>(resolveValue: T): PsPromise<T, F> {
         return Defer.promiseImpl.resolve<T, F>(resolveValue);
     }
 
 
+    /** Create a promise already rejected with the given value */
     static reject<T = never, F = any>(rejectValue: F): PsPromise<T, F> {
         return Defer.promiseImpl.reject<T, F>(rejectValue);
     }

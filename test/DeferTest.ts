@@ -1,6 +1,7 @@
 ﻿/// <reference types="chai" />
 /// <reference types="mocha" />
 import chai = require("chai");
+import Q = require("q");
 import Defer = require("../Defer");
 
 var asr = chai.assert;
@@ -26,6 +27,26 @@ interface SyncError {
     syncingDown ?: boolean;
     error: any;
 }
+
+//Defer.promiseImpl = <any>Q;
+/*Defer.promiseImpl = {
+    defer: () => {
+        var resolve: (value?: any) => void = <any>null;
+        var reject: (reason?: any) => void = <any>null;
+        var p = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
+        });
+        return {
+            promise: <PsPromise<any, any>>p,
+            resolve: resolve,
+            reject: reject,
+        };
+    },
+    resolve: (value) => <any>Promise.resolve(value),
+    reject: (reason) => <any>Promise.reject(reason),
+    all: (promises) => <any>Promise.all(<any[]>promises),
+};*/
 
 
 suite("Defer", function DeferTest() {
@@ -86,7 +107,7 @@ suite("Defer", function DeferTest() {
         // case then(value, throws)
         var p4: PsPromise<number | { errText: any }, PsPromise<number, Error>> = p3.then((res) => res, (err) => Defer.throwBack(Defer.resolve<number, Error>(10)));
 
-        p4.done((res) => {
+        p4.then((res) => {
             var expectedRes: number | { errText: any } = res;
             asr.equal(expectedRes, 10);
             done();
@@ -162,7 +183,7 @@ suite("Defer", function DeferTest() {
         };
 
         var r1: PsPromise<boolean, SyncError> = promiser({ searchPhrase: "abc" }, settings);
-        r1.done((success) => {
+        r1.then((success) => {
             asr.ok(success, "unexpected error");
             done();
         });
@@ -188,7 +209,7 @@ suite("Defer", function DeferTest() {
         Defer.reject<{ isAdmin: boolean }, ReferenceError>(new ReferenceError("ref fail")).then((res) => {
             isAdmin = res.isAdmin;
             return pIds;
-        }).done((res) => {
+        }).then((res) => {
             var nums: number[] = res;
             asr.ok(false, "expected failure, received result " + JSON.stringify(nums));
             done();
@@ -289,7 +310,7 @@ suite("Defer", function DeferTest() {
     var runInSeriesArgs = [2, 3, 5, 7];
 
     test("runActionForAllInSeries", function whenTest(done) {
-        var a = Defer.runActionForAllInSeries(runInSeriesArgs, (dfd, num) => dfd.resolve(num * 2)).done((res) => {
+        var a = Defer.runActionForAllInSeries(runInSeriesArgs, (dfd, num) => dfd.resolve(num * 2)).then((res) => {
             asr.deepEqual(res, [4, 6, 10, 14]);
             done();
         }, (err) => {
@@ -300,7 +321,7 @@ suite("Defer", function DeferTest() {
 
 
     test("runActionForAllInSeries-success", function runActionForAllInSeriesSuccessTest(done) {
-        var a = Defer.runActionForAllInSeries(runInSeriesArgs, (dfd, num) => (num > 2 ? dfd.reject(num * 2) : dfd.resolve(num * 2)), false).done((res) => {
+        var a = Defer.runActionForAllInSeries(runInSeriesArgs, (dfd, num) => (num > 2 ? dfd.reject(num * 2) : dfd.resolve(num * 2)), false).then((res) => {
             asr.ok(false, "unexpected success: " + JSON.stringify(res));
             done();
         }, (err) => {
@@ -311,7 +332,7 @@ suite("Defer", function DeferTest() {
 
 
     test("runActionForAllInSeries-throw", function runActionForAllInSeriesThrowsTest(done) {
-        var a = Defer.runActionForAllInSeries(runInSeriesArgs, (dfd, num) => (num > 2 ? dfd.reject(num * 2) : dfd.resolve(num * 2)), true).done((res) => {
+        var a = Defer.runActionForAllInSeries(runInSeriesArgs, (dfd, num) => (num > 2 ? dfd.reject(num * 2) : dfd.resolve(num * 2)), true).then((res) => {
             asr.ok(false, "unexpected success: " + JSON.stringify(res));
             done()
         }, (err) => {

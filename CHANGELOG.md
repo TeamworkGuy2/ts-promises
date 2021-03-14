@@ -4,7 +4,14 @@ This project does its best to adhere to [Semantic Versioning](http://semver.org/
 
 
 --------
-### [0.6.0](N/A) - 2020-09-05
+### [0.7.0](N/A) - 2021-03-14
+#### Changed
+* Switched from `Q` promise implementation to native `Promise`
+  * Promise implementation can be changed via public static `Defer.promiseImpl` field
+
+
+--------
+### [0.6.0](https://github.com/TeamworkGuy2/ts-promises/commit/c43791254c763189d9b46051c4da05453532a3e7) - 2020-09-05
 #### Changed
 * Update to TypeScript 4.0
 

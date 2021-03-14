@@ -5,6 +5,25 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var chai = require("chai");
 var Defer = require("../Defer");
 var asr = chai.assert;
+//Defer.promiseImpl = <any>Q;
+/*Defer.promiseImpl = {
+    defer: () => {
+        var resolve: (value?: any) => void = <any>null;
+        var reject: (reason?: any) => void = <any>null;
+        var p = new Promise((res, rej) => {
+            resolve = res;
+            reject = rej;
+        });
+        return {
+            promise: <PsPromise<any, any>>p,
+            resolve: resolve,
+            reject: reject,
+        };
+    },
+    resolve: (value) => <any>Promise.resolve(value),
+    reject: (reason) => <any>Promise.reject(reason),
+    all: (promises) => <any>Promise.all(<any[]>promises),
+};*/
 suite("Defer", function DeferTest() {
     function log() {
         var args = [];
@@ -60,7 +79,7 @@ suite("Defer", function DeferTest() {
         var p3 = p2.then(function () { return Defer.resolve(10); }, function (err) { return (Math.random() > 0.5 ? err : Defer.throwBack({ boom: "error" })); });
         // case then(value, throws)
         var p4 = p3.then(function (res) { return res; }, function (err) { return Defer.throwBack(Defer.resolve(10)); });
-        p4.done(function (res) {
+        p4.then(function (res) {
             var expectedRes = res;
             asr.equal(expectedRes, 10);
             done();
@@ -128,7 +147,7 @@ suite("Defer", function DeferTest() {
             toSvcObject: function (obj) { return ({ pnum: obj.pp, modifiedUtc: obj.modifiedUtc.toString() }); }
         };
         var r1 = promiser({ searchPhrase: "abc" }, settings);
-        r1.done(function (success) {
+        r1.then(function (success) {
             asr.ok(success, "unexpected error");
             done();
         });
@@ -151,7 +170,7 @@ suite("Defer", function DeferTest() {
         Defer.reject(new ReferenceError("ref fail")).then(function (res) {
             isAdmin = res.isAdmin;
             return pIds;
-        }).done(function (res) {
+        }).then(function (res) {
             var nums = res;
             asr.ok(false, "expected failure, received result " + JSON.stringify(nums));
             done();
@@ -236,7 +255,7 @@ suite("Defer", function DeferTest() {
     });
     var runInSeriesArgs = [2, 3, 5, 7];
     test("runActionForAllInSeries", function whenTest(done) {
-        var a = Defer.runActionForAllInSeries(runInSeriesArgs, function (dfd, num) { return dfd.resolve(num * 2); }).done(function (res) {
+        var a = Defer.runActionForAllInSeries(runInSeriesArgs, function (dfd, num) { return dfd.resolve(num * 2); }).then(function (res) {
             asr.deepEqual(res, [4, 6, 10, 14]);
             done();
         }, function (err) {
@@ -245,7 +264,7 @@ suite("Defer", function DeferTest() {
         });
     });
     test("runActionForAllInSeries-success", function runActionForAllInSeriesSuccessTest(done) {
-        var a = Defer.runActionForAllInSeries(runInSeriesArgs, function (dfd, num) { return (num > 2 ? dfd.reject(num * 2) : dfd.resolve(num * 2)); }, false).done(function (res) {
+        var a = Defer.runActionForAllInSeries(runInSeriesArgs, function (dfd, num) { return (num > 2 ? dfd.reject(num * 2) : dfd.resolve(num * 2)); }, false).then(function (res) {
             asr.ok(false, "unexpected success: " + JSON.stringify(res));
             done();
         }, function (err) {
@@ -254,7 +273,7 @@ suite("Defer", function DeferTest() {
         });
     });
     test("runActionForAllInSeries-throw", function runActionForAllInSeriesThrowsTest(done) {
-        var a = Defer.runActionForAllInSeries(runInSeriesArgs, function (dfd, num) { return (num > 2 ? dfd.reject(num * 2) : dfd.resolve(num * 2)); }, true).done(function (res) {
+        var a = Defer.runActionForAllInSeries(runInSeriesArgs, function (dfd, num) { return (num > 2 ? dfd.reject(num * 2) : dfd.resolve(num * 2)); }, true).then(function (res) {
             asr.ok(false, "unexpected success: " + JSON.stringify(res));
             done();
         }, function (err) {
