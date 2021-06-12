@@ -1,6 +1,6 @@
 {
   "name": "ts-promises",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "TypeScript wrappers for strongly typed promises/deferred objects, extends the promise/A+ spec (currently uses Q.js).",
   "author": "TeamworkGuy2",
   "homepage": "https://github.com/TeamworkGuy2/ts-promises",
@@ -17,7 +17,7 @@
     "chai": "~4.2.0",
     "mocha": "~5.2.0",
     "q": "~1.5.0",
-    "typescript": "~4.0.2"
+    "typescript": "~4.3.2"
   },
   "scripts": {
     "test": "node node_modules/mocha/bin/_mocha -u tdd --recursive",
