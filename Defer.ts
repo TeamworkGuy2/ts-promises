@@ -150,7 +150,7 @@ class Defer {
                 try {
                     newRes = successCb(res);
                 } catch (successCallErr) {
-                    dstDfd.reject(successCallErr);
+                    dstDfd.reject(<any>successCallErr);
                 }
                 if (newRes != null) {
                     res = newRes;
@@ -164,7 +164,7 @@ class Defer {
                 try {
                     tmpErr = failureCb(err);
                 } catch (failureCallErr) {
-                    tmpErr = failureCallErr;
+                    tmpErr = <any>failureCallErr;
                 }
                 if (tmpErr != null) {
                     newErr = tmpErr;
@@ -207,8 +207,8 @@ class Defer {
                     });
                 }
                 catch (err) {
-                    cachedDfd.reject(err);
-                    error = err;
+                    cachedDfd.reject(<any>err);
+                    error = <any>err;
                     cacheFailed = true;
                 }
             }
